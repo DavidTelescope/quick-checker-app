@@ -942,6 +942,7 @@ function startNewSession() {
   };
   state.pendingPhoto = null;
   resetAddForm();
+   renderAddQueue();
   document.getElementById('add-session-label').textContent =
     'Session · ' + fmtShortDate(state.session.createdAt);
   showScreen('screen-add');
