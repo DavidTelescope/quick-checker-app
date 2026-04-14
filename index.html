@@ -513,6 +513,61 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 .settings-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
 
 /* ==============================================
+   SKUVAULT LOOKUP RESULT
+   ============================================== */
+#sv-result { margin-top: 10px; }
+
+.sv-looking {
+  font-size: 13px; color: var(--text-light);
+  padding: 8px 0; font-style: italic;
+}
+.sv-not-found {
+  font-size: 13px; color: var(--text-light);
+  padding: 8px 12px;
+  background: #F5F5F5; border-radius: 10px;
+}
+.sv-found-label {
+  font-size: 12px; font-weight: 700;
+  color: var(--green); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 10px;
+}
+.sv-item-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px; border-radius: 12px;
+  border: 2px solid var(--border);
+  background: white;
+  margin-bottom: 8px;
+  cursor: pointer; touch-action: manipulation;
+  transition: all 0.1s;
+}
+.sv-item-btn:active  { transform: scale(0.98); }
+.sv-item-btn.selected {
+  border-color: var(--pink);
+  background: var(--pink-light);
+}
+.sv-item-img {
+  width: 52px; height: 52px;
+  object-fit: cover; border-radius: 8px;
+  background: #F5F5F5; flex-shrink: 0;
+}
+.sv-item-img-placeholder {
+  width: 52px; height: 52px;
+  border-radius: 8px; background: #F0F0F0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.sv-item-sku   { font-size: 13px; font-weight: 700; color: var(--pink-dark); }
+.sv-item-title { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 1px; }
+.sv-item-qty   { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.sv-badge {
+  display: inline-block;
+  padding: 2px 8px; border-radius: 100px;
+  background: var(--green-bg); color: var(--green);
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+
+/* ==============================================
    MISC
    ============================================== */
 .divider  { height: 1px; background: var(--pink-mid); margin: 20px 0; }
@@ -627,7 +682,7 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
   <div class="content">
 
     <div class="field-group">
-      <label class="field-label">Product Photo <span style="color:var(--red)">*</span></label>
+      <label class="field-label">Product Photo</label>
       <div id="photo-area">
         <div class="photo-tap-zone" onclick="triggerCamera()">
           <div class="photo-tap-icon">📷</div>
@@ -643,7 +698,8 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
       <input type="text" class="field-input" id="po-input"
              placeholder="e.g. PO-2024-001"
              autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
-             oninput="checkAddReady()">
+             oninput="onPoInput()">
+      <div id="sv-result"></div>
     </div>
 
     <button class="btn btn-pink" id="add-btn" onclick="addToQueue()" disabled>
@@ -772,14 +828,19 @@ const REJECTION_REASONS = [
 // ──────────────────────────────────────────
 
 const state = {
-  gasUrl:           localStorage.getItem('qc_gas_url') || '',
+  gasUrl:           localStorage.getItem('qc_gas_url') || 'https://script.google.com/macros/s/AKfycbyyc50fQe1F5TC7IL5R7e5WjThk-4lS1MUE9SiVR52ehjmdB9pG0-81vVZo7699lqft/exec',
   session:          null,   // active session object
   currentProductId: null,   // product currently being reviewed
   selectedApprover: null,
   selectedReason:   null,
   pendingPhoto:     null,   // base64 waiting to be queued
-  sessions:         JSON.parse(localStorage.getItem('qc_sessions') || '[]')
+  sessions:         JSON.parse(localStorage.getItem('qc_sessions') || '[]'),
+  // SKUVault lookup state (cleared on each resetAddForm)
+  svLookup:         null,   // { found, poId, poNumber, existingNotes, items[] }
+  svSelectedItem:   null    // index into svLookup.items, or null
 };
+
+var svLookupTimer = null;
 
 // ──────────────────────────────────────────
 // UTILITIES
@@ -863,6 +924,128 @@ async function gasPost(payload) {
 }
 
 // ──────────────────────────────────────────
+// SKUVAULT PO LOOKUP (non-blocking)
+// ──────────────────────────────────────────
+
+// Called on every keystroke in the PO field (debounced)
+function onPoInput() {
+  checkAddReady();
+  clearTimeout(svLookupTimer);
+
+  var po = document.getElementById('po-input').value.trim();
+  if (!po) { clearSvLookup(); return; }
+
+  // Show subtle "looking…" text but don't block anything
+  document.getElementById('sv-result').innerHTML =
+    '<div class="sv-looking">🔍 Looking up PO…</div>';
+
+  svLookupTimer = setTimeout(function() { runPoLookup(po); }, 700);
+}
+
+async function runPoLookup(po) {
+  try {
+    var result = await gasPost({ action: 'lookupPO', poNumber: po });
+    state.svLookup       = result.found ? result : null;
+    state.svSelectedItem = null;
+    renderSvResult(result);
+    checkAddReady();
+  } catch (err) {
+    // Silent fail — SKUVault is non-blocking
+    clearSvLookup();
+  }
+}
+
+function clearSvLookup() {
+  state.svLookup       = null;
+  state.svSelectedItem = null;
+  document.getElementById('sv-result').innerHTML = '';
+  // Reset photo area back to camera prompt if Tara hasn't taken a manual photo
+  if (!state.pendingPhoto) {
+    document.getElementById('photo-area').innerHTML =
+      '<div class="photo-tap-zone" onclick="triggerCamera()">' +
+        '<div class="photo-tap-icon">📷</div>' +
+        '<div>Tap to take photo</div>' +
+      '</div>';
+  }
+  checkAddReady();
+}
+
+function renderSvResult(result) {
+  var el = document.getElementById('sv-result');
+
+  if (!result || !result.found) {
+    // PO not in SKUVault — clear result area and reset photo if no manual photo taken
+    el.innerHTML = '';
+    if (!state.pendingPhoto) {
+      document.getElementById('photo-area').innerHTML =
+        '<div class="photo-tap-zone" onclick="triggerCamera()">' +
+          '<div class="photo-tap-icon">📷</div>' +
+          '<div>Tap to take photo</div>' +
+        '</div>';
+    }
+    return;
+  }
+
+  var items = result.items;
+  var html  = '<div class="sv-found-label">✓ Found in SKUVault — ' +
+              items.length + ' item' + (items.length > 1 ? 's' : '') + '</div>';
+
+  items.forEach(function(item, i) {
+    var imgHtml = item.imageUrl
+      ? '<img class="sv-item-img" src="' + item.imageUrl + '" alt="Product">'
+      : '<div class="sv-item-img-placeholder">📦</div>';
+
+    html += '<div class="sv-item-btn" id="sv-item-' + i + '" onclick="selectSvItem(' + i + ')">' +
+      imgHtml +
+      '<div>' +
+        (item.sku   ? '<div class="sv-item-sku">'   + item.sku   + '</div>' : '') +
+        (item.title ? '<div class="sv-item-title">'  + item.title + '</div>' : '<div class="sv-item-title" style="color:var(--text-light)">No description</div>') +
+        (item.qty   ? '<div class="sv-item-qty">Expected qty: ' + item.qty + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  });
+
+  el.innerHTML = html;
+
+  // Auto-select single items so Tara doesn't have to tap
+  if (items.length === 1) selectSvItem(0);
+}
+
+function selectSvItem(idx) {
+  state.svSelectedItem = idx;
+  var item = state.svLookup.items[idx];
+
+  // Highlight the selected item
+  document.querySelectorAll('.sv-item-btn').forEach(function(b) {
+    b.classList.remove('selected');
+  });
+  var btn = document.getElementById('sv-item-' + idx);
+  if (btn) btn.classList.add('selected');
+
+  // Only auto-fill photo area if Tara hasn't already taken a manual photo
+  if (!state.pendingPhoto) {
+    if (item.imageUrl) {
+      document.getElementById('photo-area').innerHTML =
+        '<div class="photo-preview-wrap">' +
+          '<img class="photo-preview-img" src="' + item.imageUrl + '" alt="' + (item.title || 'Product') + '">' +
+          '<div class="photo-retake-overlay">' +
+            '<button class="photo-retake-btn" onclick="triggerCamera()">📷 Use own photo instead</button>' +
+          '</div>' +
+        '</div>';
+    } else {
+      // Item found but no image — keep camera prompt, update hint text
+      document.getElementById('photo-area').innerHTML =
+        '<div class="photo-tap-zone" onclick="triggerCamera()">' +
+          '<div class="photo-tap-icon">📷</div>' +
+          '<div>No image in SKUVault — tap to take photo</div>' +
+        '</div>';
+    }
+  }
+
+  checkAddReady();
+}
+
+// ──────────────────────────────────────────
 // SETTINGS
 // ──────────────────────────────────────────
 
@@ -942,7 +1125,7 @@ function startNewSession() {
   };
   state.pendingPhoto = null;
   resetAddForm();
-   renderAddQueue();
+  renderAddQueue();
   document.getElementById('add-session-label').textContent =
     'Session · ' + fmtShortDate(state.session.createdAt);
   showScreen('screen-add');
@@ -985,43 +1168,75 @@ async function handlePhoto(e) {
 }
 
 function checkAddReady() {
-  var hasPO    = document.getElementById('po-input').value.trim().length > 0;
-  var hasPhoto = !!state.pendingPhoto;
-  document.getElementById('add-btn').disabled = !(hasPO && hasPhoto);
+  var hasPO       = document.getElementById('po-input').value.trim().length > 0;
+  var hasPhoto    = !!state.pendingPhoto;
+  var hasSvImage  = !!(state.svLookup &&
+                       state.svSelectedItem !== null &&
+                       state.svLookup.items[state.svSelectedItem] &&
+                       state.svLookup.items[state.svSelectedItem].imageUrl);
+  document.getElementById('add-btn').disabled = !(hasPO && (hasPhoto || hasSvImage));
 }
 
 async function addToQueue() {
   var po = document.getElementById('po-input').value.trim();
-  if (!po || !state.pendingPhoto) return;
+  if (!po) return;
 
-  var productId = uid('prod');
-  showLoading('Uploading photo…');
+  // Resolve which image source to use
+  var svItem     = (state.svLookup && state.svSelectedItem !== null)
+                   ? state.svLookup.items[state.svSelectedItem]
+                   : null;
+  var hasSvImage = !!(svItem && svItem.imageUrl);
 
-  var photoUrl = '';
-  try {
-    var res = await gasPost({
-      action:      'uploadPhoto',
-      photoBase64: state.pendingPhoto,
-      fileName:    'qc_' + productId + '_' + po.replace(/[^a-zA-Z0-9]/g, '_') + '.jpg'
-    });
-    photoUrl = res.url;
-  } catch (err) {
-    hideLoading();
-    showToast('Upload failed — check connection', 'red');
-    return;
+  if (!state.pendingPhoto && !hasSvImage) return;
+
+  var productId    = uid('prod');
+  var photoUrl     = '';
+  var photoBase64  = state.pendingPhoto || null;
+
+  if (state.pendingPhoto) {
+    // Manual photo — upload to Drive as before
+    showLoading('Uploading photo…');
+    try {
+      var res = await gasPost({
+        action:      'uploadPhoto',
+        photoBase64: state.pendingPhoto,
+        fileName:    (function() {
+          var poClean = po.replace(/[^a-zA-Z0-9]/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
+          var d = new Date();
+          var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+          var stamp = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                      '-' + pad(d.getHours()) + pad(d.getMinutes());
+          return 'PO-' + poClean + '-' + stamp + '.jpg';
+        })()
+      });
+      photoUrl = res.url;
+    } catch (err) {
+      hideLoading();
+      showToast('Upload failed — check connection', 'red');
+      return;
+    }
+  } else {
+    // SKUVault image — use it directly, no Drive upload needed
+    photoUrl = svItem.imageUrl;
   }
 
   state.session.products.push({
     id:              productId,
     poNumber:        po,
-    photoBase64:     state.pendingPhoto,
+    photoBase64:     photoBase64,
     photoUrl:        photoUrl,
     status:          'pending',
     approver:        '',
     rejectionReason: '',
     rejectionNotes:  '',
     createdAt:       new Date().toISOString(),
-    reviewedAt:      null
+    reviewedAt:      null,
+    // SKUVault fields — null/empty when entered manually
+    skuVaultPoId:    state.svLookup ? state.svLookup.poId          : null,
+    skuVaultSku:     svItem         ? svItem.sku                   : '',
+    productTitle:    svItem         ? svItem.title                 : '',
+    expectedQty:     svItem         ? svItem.qty                   : null,
+    svExistingNotes: state.svLookup ? state.svLookup.existingNotes : ''
   });
 
   hideLoading();
@@ -1031,8 +1246,12 @@ async function addToQueue() {
 }
 
 function resetAddForm() {
-  state.pendingPhoto = null;
-  document.getElementById('po-input').value = '';
+  state.pendingPhoto   = null;
+  state.svLookup       = null;
+  state.svSelectedItem = null;
+  clearTimeout(svLookupTimer);
+  document.getElementById('po-input').value  = '';
+  document.getElementById('sv-result').innerHTML = '';
   document.getElementById('photo-area').innerHTML =
     '<div class="photo-tap-zone" onclick="triggerCamera()">' +
       '<div class="photo-tap-icon">📷</div>' +
@@ -1055,11 +1274,14 @@ function renderAddQueue() {
   }
 
   document.getElementById('add-queue-list').innerHTML = products.map(function(p, i) {
+    var subLine = p.productTitle
+      ? (p.skuVaultSku ? p.skuVaultSku + ' · ' : '') + p.productTitle
+      : 'Added ' + fmtShortDate(p.createdAt);
     return '<div class="queue-item">' +
       '<img class="queue-item-thumb" src="' + (p.photoBase64 || p.photoUrl) + '" alt="Product">' +
       '<div class="queue-item-body">' +
         '<div class="queue-item-po">' + p.poNumber + '</div>' +
-        '<div class="queue-item-sub">Added ' + fmtShortDate(p.createdAt) + '</div>' +
+        '<div class="queue-item-sub">' + subLine + '</div>' +
       '</div>' +
       '<button class="queue-item-del" onclick="removeFromQueue(' + i + ')">✕</button>' +
     '</div>';
@@ -1115,6 +1337,12 @@ function renderReviewQueue() {
         '<div>' +
           '<div class="product-card-po-label">PO Number</div>' +
           '<div class="product-card-po">' + p.poNumber + '</div>' +
+          (p.productTitle
+            ? '<div style="font-size:12px;color:var(--text-light);margin-top:2px">' +
+                (p.skuVaultSku ? '<span style="font-weight:700;color:var(--pink-dark)">' + p.skuVaultSku + '</span> · ' : '') +
+                p.productTitle +
+              '</div>'
+            : '') +
         '</div>' +
         '<div class="product-card-footer">' + badge + hint + '</div>' +
         rejectNote +
@@ -1135,6 +1363,11 @@ function openProductReview(productId) {
   state.selectedApprover = null;
 
   document.getElementById('product-po-label').textContent = 'PO ' + p.poNumber;
+  // Show product title in header subtitle if available
+  document.querySelector('#screen-product .header-sub').textContent =
+    p.productTitle
+      ? p.productTitle + (p.skuVaultSku ? '  ·  ' + p.skuVaultSku : '')
+      : 'Tap your name, then choose Approve or Reject';
   document.getElementById('product-photo').src = p.photoBase64 || p.photoUrl;
 
   document.getElementById('approver-grid').innerHTML = APPROVERS.map(function(name) {
@@ -1269,7 +1502,12 @@ function buildRecord(p) {
     photoUrl:        p.photoUrl        || '',
     reviewedAt:      p.reviewedAt      || '',
     createdAt:       p.createdAt       || '',
-    updatedAt:       new Date().toISOString()
+    updatedAt:       new Date().toISOString(),
+    // SKUVault fields — empty strings when product was entered manually
+    skuVaultPoId:    p.skuVaultPoId    || null,
+    skuVaultSku:     p.skuVaultSku     || '',
+    productTitle:    p.productTitle    || '',
+    svExistingNotes: p.svExistingNotes || ''
   };
 }
 
@@ -1358,9 +1596,7 @@ function renderSummary() {
 
 renderHome();
 
-if (!state.gasUrl) {
-  setTimeout(function(){ showToast('Tap "Configure App" to set your GAS URL', ''); }, 700);
-}
+// GAS URL has a built-in default — no configuration toast needed on first launch
 
 </script>
 </body>
