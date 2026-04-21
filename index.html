@@ -23,6 +23,8 @@
   --red-bg:      #FFEBEE;
   --amber:       #F57C00;
   --amber-bg:    #FFF3E0;
+  --blue:        #1976D2;
+  --blue-bg:     #E3F2FD;
   --gray:        #9E9E9E;
   --bg:          #FFF9FB;
   --card:        #FFFFFF;
@@ -285,23 +287,88 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
    ============================================== */
 .home-hero {
   background: linear-gradient(145deg, var(--pink) 0%, var(--pink-dark) 100%);
-  padding: 48px 24px 40px;
+  padding: 44px 24px 36px;
   text-align: center;
   color: white;
   border-radius: 0 0 32px 32px;
-  margin: -20px -20px 28px;
+  margin: -20px -20px 24px;
 }
-.home-hero-icon { font-size: 56px; margin-bottom: 14px; }
-.home-hero h1   { font-size: 30px; font-weight: 800; margin-bottom: 6px; }
-.home-hero p    { font-size: 16px; opacity: 0.82; }
+.home-hero-logo {
+  height: 72px;
+  width: auto;
+  margin: 0 auto 14px;
+  display: block;
+}
+.home-hero-emoji {
+  font-size: 56px;
+  margin-bottom: 14px;
+  line-height: 1;
+  display: none;
+}
+.home-hero h1 { font-size: 30px; font-weight: 800; margin-bottom: 6px; }
+.home-hero p  { font-size: 16px; opacity: 0.82; }
+
+/* Filter chips */
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: white;
+  color: var(--text-mid);
+  border: 2px solid var(--border);
+  touch-action: manipulation;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.chip:active { transform: scale(0.96); }
+.chip.active { background: var(--pink); color: white; border-color: var(--pink); }
+
+/* Home search */
+.home-search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.home-search-input {
+  width: 100%;
+  padding: 14px 16px 14px 42px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  font-size: 16px;
+  color: var(--text);
+  background: white;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s;
+}
+.home-search-input:focus { border-color: var(--pink); }
+.home-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  pointer-events: none;
+}
 
 /* ==============================================
    SESSION HISTORY ROWS
    ============================================== */
 .session-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background: white;
   border: 1.5px solid var(--border);
   border-radius: 14px;
@@ -312,14 +379,35 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
   transition: transform 0.1s;
 }
 .session-row:active { transform: scale(0.98); }
-.session-row-title  { font-size: 15px; font-weight: 700; }
-.session-row-sub    { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-.session-row-stats  { display: flex; gap: 10px; align-items: center; }
+.session-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.session-row-date  { font-size: 15px; font-weight: 700; }
+.session-row-stats { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .stat-pill {
-  padding: 4px 10px;
+  padding: 3px 9px;
   border-radius: 100px;
   font-size: 12px;
   font-weight: 700;
+}
+.session-row-pos {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pink-dark);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.session-row-products {
+  font-size: 12px;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==============================================
@@ -342,10 +430,15 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 .product-card.pending  { border-color: #FFCA28;      }
 .product-card-img {
   width: 96px; min-width: 96px;
-  background: #F5F5F5;
+  background: var(--pink-light);
   overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
 }
-.product-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.product-card-img img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
 .product-card-body {
   flex: 1;
   padding: 14px 16px;
@@ -372,6 +465,7 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
   flex-wrap: wrap; gap: 6px;
 }
 .product-card-rejection { font-size: 12px; color: var(--red); margin-top: 4px; font-weight: 500; }
+.product-card-image-flag { font-size: 11px; color: var(--blue); margin-top: 3px; font-weight: 600; }
 
 /* ==============================================
    QUEUE ITEMS (Add Products screen)
@@ -386,8 +480,11 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 }
 .queue-item-thumb {
   width: 56px; height: 56px;
-  border-radius: 8px; object-fit: cover;
-  background: #F5F5F5; flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: contain;
+  object-position: center;
+  background: var(--pink-light);
+  flex-shrink: 0;
 }
 .queue-item-body { flex: 1; min-width: 0; }
 .queue-item-po  { font-size: 16px; font-weight: 700; }
@@ -415,8 +512,16 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 .photo-tap-zone:active { background: var(--pink-mid); }
 .photo-tap-icon        { font-size: 48px; line-height: 1; }
 .photo-preview-wrap    { position: relative; border-radius: var(--radius); overflow: hidden; }
-.photo-preview-img     { width: 100%; max-height: 280px; object-fit: cover; display: block; }
-.photo-retake-overlay  {
+.photo-preview-img {
+  width: 100%;
+  height: 260px;
+  object-fit: contain;
+  object-position: center;
+  background: var(--pink-light);
+  display: block;
+  border-radius: var(--radius);
+}
+.photo-retake-overlay {
   position: absolute; inset: 0;
   display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px;
 }
@@ -425,6 +530,35 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
   border-radius: 100px; padding: 10px 20px;
   font-size: 14px; font-weight: 600; touch-action: manipulation;
 }
+
+/* ==============================================
+   PO AUTOCOMPLETE
+   ============================================== */
+.po-input-wrap { position: relative; }
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: white;
+  border: 2px solid var(--pink-mid);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  z-index: 200;
+  display: none;
+  box-shadow: 0 6px 16px rgba(233,30,140,0.10);
+  overflow: hidden;
+}
+.autocomplete-dropdown.open { display: block; }
+.autocomplete-item {
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--pink-light);
+  cursor: pointer;
+  touch-action: manipulation;
+  color: var(--pink-dark);
+}
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item:active { background: var(--pink-light); }
 
 /* ==============================================
    APPROVER GRID
@@ -452,6 +586,46 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
    ============================================== */
 .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
 
+/* Image update flag toggle */
+.image-flag-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid var(--blue-bg);
+  border-radius: 14px;
+  background: var(--blue-bg);
+  margin-top: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.image-flag-toggle.flagged {
+  border-color: var(--blue);
+  background: white;
+}
+.image-flag-toggle:active { transform: scale(0.98); }
+.image-flag-icon  { font-size: 24px; flex-shrink: 0; }
+.image-flag-label { font-size: 14px; font-weight: 600; color: var(--text-mid); flex: 1; }
+.image-flag-toggle.flagged .image-flag-label { color: var(--blue); }
+.image-flag-check {
+  width: 24px; height: 24px;
+  border: 2.5px solid #BDBDBD;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px; font-weight: 800;
+  color: white;
+  background: transparent;
+  transition: all 0.15s;
+}
+.image-flag-toggle.flagged .image-flag-check {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
 /* ==============================================
    REJECTION REASONS
    ============================================== */
@@ -471,11 +645,166 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
    PRODUCT REVIEW — FULL PHOTO
    ============================================== */
 .review-photo-wrap {
-  background: #111; width: 100%; max-height: 42vh;
-  overflow: hidden; display: flex;
-  align-items: center; justify-content: center;
+  background: var(--pink-light);
+  width: 100%;
+  height: 38vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.review-photo-wrap img { width: 100%; max-height: 42vh; object-fit: contain; }
+.review-photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ==============================================
+   SKUVAULT / ASANA LOOKUP RESULT
+   ============================================== */
+#sv-result { margin-top: 10px; }
+
+.sv-looking {
+  font-size: 13px; color: var(--text-light);
+  padding: 8px 0; font-style: italic;
+}
+.sv-not-found {
+  font-size: 13px; color: var(--text-light);
+  padding: 8px 12px;
+  background: #F5F5F5; border-radius: 10px;
+}
+.sv-found-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sv-found-label {
+  font-size: 12px; font-weight: 700;
+  color: var(--green); text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.sv-found-label.asana-label { color: var(--blue); }
+.sv-source-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.sv-source-badge.skuvault { background: var(--green-bg); color: var(--green); }
+.sv-source-badge.asana    { background: var(--blue-bg);  color: var(--blue);  }
+
+.sv-prior-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--amber-bg);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+.sv-prior-toggle:active { opacity: 0.8; }
+
+.sv-item-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px; border-radius: 12px;
+  border: 2px solid var(--border);
+  background: white;
+  margin-bottom: 8px;
+  cursor: pointer; touch-action: manipulation;
+  transition: all 0.1s;
+  position: relative;
+}
+.sv-item-btn:active  { transform: scale(0.98); }
+.sv-item-btn.selected {
+  border-color: var(--pink);
+  background: var(--pink-light);
+}
+.sv-item-btn.prior-approved {
+  border-color: var(--green);
+  background: var(--green-bg);
+  opacity: 0.75;
+}
+.sv-item-check {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 22px; height: 22px;
+  border: 2.5px solid #BDBDBD;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800;
+  color: white;
+  background: transparent;
+  transition: all 0.1s;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.sv-item-btn.grouped-mode { padding-right: 44px; }
+.sv-item-btn.grouped-mode.selected .sv-item-check {
+  border-color: var(--pink);
+  background: var(--pink);
+}
+.sv-item-btn.grouped-mode.selected .sv-item-check::after { content: '✓'; }
+
+.sv-item-img {
+  width: 52px; height: 52px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 8px;
+  background: var(--pink-light);
+  flex-shrink: 0;
+}
+.sv-item-img-placeholder {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  background: var(--pink-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.sv-item-sku   { font-size: 13px; font-weight: 700; color: var(--pink-dark); }
+.sv-item-title { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 1px; }
+.sv-item-qty   { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.sv-item-prior-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 100px;
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 3px;
+}
+
+.bundle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: var(--pink);
+  color: white;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  touch-action: manipulation;
+  margin-top: 4px;
+}
+.bundle-btn:active { transform: scale(0.98); }
 
 /* ==============================================
    SESSION SUMMARY
@@ -513,58 +842,14 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 .settings-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
 
 /* ==============================================
-   SKUVAULT LOOKUP RESULT
+   CONFETTI CANVAS
    ============================================== */
-#sv-result { margin-top: 10px; }
-
-.sv-looking {
-  font-size: 13px; color: var(--text-light);
-  padding: 8px 0; font-style: italic;
-}
-.sv-not-found {
-  font-size: 13px; color: var(--text-light);
-  padding: 8px 12px;
-  background: #F5F5F5; border-radius: 10px;
-}
-.sv-found-label {
-  font-size: 12px; font-weight: 700;
-  color: var(--green); text-transform: uppercase;
-  letter-spacing: 0.5px; margin-bottom: 10px;
-}
-.sv-item-btn {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px; border-radius: 12px;
-  border: 2px solid var(--border);
-  background: white;
-  margin-bottom: 8px;
-  cursor: pointer; touch-action: manipulation;
-  transition: all 0.1s;
-}
-.sv-item-btn:active  { transform: scale(0.98); }
-.sv-item-btn.selected {
-  border-color: var(--pink);
-  background: var(--pink-light);
-}
-.sv-item-img {
-  width: 52px; height: 52px;
-  object-fit: cover; border-radius: 8px;
-  background: #F5F5F5; flex-shrink: 0;
-}
-.sv-item-img-placeholder {
-  width: 52px; height: 52px;
-  border-radius: 8px; background: #F0F0F0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; flex-shrink: 0;
-}
-.sv-item-sku   { font-size: 13px; font-weight: 700; color: var(--pink-dark); }
-.sv-item-title { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 1px; }
-.sv-item-qty   { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-.sv-badge {
-  display: inline-block;
-  padding: 2px 8px; border-radius: 100px;
-  background: var(--green-bg); color: var(--green);
-  font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.3px;
+#confetti-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 7000;
+  pointer-events: none;
+  display: none;
 }
 
 /* ==============================================
@@ -584,16 +869,19 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 <body>
 
 <!-- ============================================================
+     CONFETTI CANVAS
+     ============================================================ -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ============================================================
      GLOBAL OVERLAYS
      ============================================================ -->
 
-<!-- Loading spinner -->
 <div id="loading">
   <div class="spinner"></div>
   <div class="loading-msg" id="loading-msg">Saving…</div>
 </div>
 
-<!-- Toast notification -->
 <div id="toast"></div>
 
 <!-- Settings modal -->
@@ -619,7 +907,7 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 
     <div class="field-group">
       <label class="field-label">Reason <span style="color:var(--red)">*</span></label>
-      <div class="reason-grid" id="reason-grid"><!-- populated by JS --></div>
+      <div class="reason-grid" id="reason-grid"></div>
     </div>
 
     <div class="field-group">
@@ -648,17 +936,33 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
   <div class="content">
 
     <div class="home-hero">
-      <div class="home-hero-icon">🔭</div>
+      <img class="home-hero-logo" src="quick-checker-logo.png" alt="Quick Checker"
+           onerror="this.style.display='none';document.getElementById('hero-emoji').style.display='block'">
+      <span id="hero-emoji" class="home-hero-emoji">🔭</span>
       <h1>Quick Checker</h1>
       <p>Telescope Studio · Inventory QC</p>
     </div>
 
-    <button class="btn btn-pink btn-xl" onclick="startNewSession()" style="margin-bottom:32px">
+    <button class="btn btn-pink btn-xl" onclick="startNewSession()" style="margin-bottom:28px">
       + &nbsp;Start New Session
     </button>
 
+    <div class="filter-chips" id="home-filter-chips">
+      <button class="chip active" data-filter="all"          onclick="setHomeFilter('all')">All</button>
+      <button class="chip"        data-filter="rejections"   onclick="setHomeFilter('rejections')">✗ Rejections</button>
+      <button class="chip"        data-filter="image-update" onclick="setHomeFilter('image-update')">📸 Image Update</button>
+    </div>
+
+    <div class="home-search-wrap">
+      <span class="home-search-icon">🔍</span>
+      <input type="search" class="home-search-input" id="home-search"
+             placeholder="Search PO, SKU, product…"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             oninput="onHomeSearch(this.value)">
+    </div>
+
     <div class="section-label">Recent Sessions</div>
-    <div id="home-history"><!-- populated by JS --></div>
+    <div id="home-history"></div>
 
   </div>
   <div class="footer-bar">
@@ -695,10 +999,13 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 
     <div class="field-group">
       <label class="field-label" for="po-input">PO Number <span style="color:var(--red)">*</span></label>
-      <input type="text" class="field-input" id="po-input"
-             placeholder="e.g. PO-2024-001"
-             autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
-             oninput="onPoInput()">
+      <div class="po-input-wrap">
+        <input type="text" class="field-input" id="po-input"
+               placeholder="e.g. 35831-01"
+               autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+               oninput="onPoInput()" onfocus="onPoFocus()" onblur="onPoBlur()">
+        <div class="autocomplete-dropdown" id="po-autocomplete"></div>
+      </div>
       <div id="sv-result"></div>
     </div>
 
@@ -709,7 +1016,7 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
     <div class="divider"></div>
 
     <div class="section-label">In Queue &nbsp;<span id="queue-count-label">(0)</span></div>
-    <div id="add-queue-list"><!-- populated by JS --></div>
+    <div id="add-queue-list"></div>
 
   </div>
 
@@ -733,7 +1040,7 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
     </div>
   </div>
 
-  <div class="content" id="review-queue-content"><!-- populated by JS --></div>
+  <div class="content" id="review-queue-content"></div>
 
   <div class="footer-bar">
     <button class="btn btn-pink" id="finish-btn" onclick="finishSession()" disabled>
@@ -751,7 +1058,7 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
     <button class="header-back" onclick="showScreen('screen-review')">‹</button>
     <div class="header-text">
       <div class="header-title" id="product-po-label">PO —</div>
-      <div class="header-sub">Tap your name, then choose Approve or Reject</div>
+      <div class="header-sub" id="product-review-sub">Tap your name, then choose Approve or Reject</div>
     </div>
   </div>
 
@@ -763,7 +1070,7 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
 
     <div style="padding:20px">
       <div class="section-label" style="margin-bottom:12px">Who is reviewing?</div>
-      <div class="approver-grid" id="approver-grid"><!-- populated by JS --></div>
+      <div class="approver-grid" id="approver-grid"></div>
 
       <div class="action-row">
         <button class="btn btn-green btn-xl" id="approve-btn" onclick="doApprove()" disabled>
@@ -773,8 +1080,16 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
           ✗&nbsp; Reject
         </button>
       </div>
-    </div>
 
+      <div id="image-flag-section" style="display:none">
+        <div class="image-flag-toggle" id="image-flag-toggle" onclick="toggleImageUpdateFlag()">
+          <span class="image-flag-icon">📸</span>
+          <span class="image-flag-label">Storefront image needs updating</span>
+          <span class="image-flag-check" id="image-flag-check"></span>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -791,9 +1106,9 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
   </div>
 
   <div class="content">
-    <div class="summary-grid" id="summary-stats"><!-- populated by JS --></div>
+    <div class="summary-grid" id="summary-stats"></div>
     <div class="section-label">Products</div>
-    <div id="summary-list"><!-- populated by JS --></div>
+    <div id="summary-list"></div>
   </div>
 
   <div class="footer-bar">
@@ -806,6 +1121,19 @@ textarea.field-input { min-height: 90px; resize: none; line-height: 1.5; }
      APP LOGIC
      ============================================================ -->
 <script>
+
+// ──────────────────────────────────────────
+// FEATURE FLAGS
+// ──────────────────────────────────────────
+
+const FLAGS = {
+  GROUPED_CHECKS:        true,
+  PRIOR_CHECK_AWARENESS: true,
+  ASANA_FALLBACK:        true,
+  PO_AUTOCOMPLETE:       true,
+  IMAGE_UPDATE_FLAG:     true,
+  CONFETTI:              true
+};
 
 // ──────────────────────────────────────────
 // CONSTANTS
@@ -828,19 +1156,29 @@ const REJECTION_REASONS = [
 // ──────────────────────────────────────────
 
 const state = {
-  gasUrl:           localStorage.getItem('qc_gas_url') || 'https://script.google.com/macros/s/AKfycbxLa7thhOPfEvPgGRc8u5tCov43nlvSwVh7TVopUHBT4UwSRZ7Od8jEJUzoYyTGwpXDQQ/exec',
-  session:          null,   // active session object
-  currentProductId: null,   // product currently being reviewed
+  gasUrl: localStorage.getItem('qc_gas_url') ||
+          'https://script.google.com/macros/s/AKfycbzjyboT7jUrgyxffDAJl8KKOze-VDAkmvgMefv98_bR8MYyUtizoKp0umma7INkEsOi2w/exec',
+
+  session:          null,
+  currentProductId: null,
   selectedApprover: null,
   selectedReason:   null,
-  pendingPhoto:     null,   // base64 waiting to be queued
-  sessions:         JSON.parse(localStorage.getItem('qc_sessions') || '[]'),
-  // SKUVault lookup state (cleared on each resetAddForm)
-  svLookup:         null,   // { found, poId, poNumber, existingNotes, items[] }
-  svSelectedItem:   null    // index into svLookup.items, or null
+  imageUpdateFlag:  false,
+  pendingPhoto:     null,
+
+  sessions: JSON.parse(localStorage.getItem('qc_sessions') || '[]'),
+
+  svLookup:          null,
+  svSelectedItem:    null,
+  svSelectedItems:   [],
+  showPriorApproved: false,
+
+  homeFilter: 'all',
+  homeSearch: ''
 };
 
-var svLookupTimer = null;
+var svLookupTimer    = null;
+var autocompleteOpen = false;
 
 // ──────────────────────────────────────────
 // UTILITIES
@@ -905,144 +1243,350 @@ async function resizePhoto(base64, maxPx) {
   });
 }
 
+function scanPriorApprovals() {
+  if (!FLAGS.PRIOR_CHECK_AWARENESS) return new Set();
+  var approved = new Set();
+  state.sessions.forEach(function(s) {
+    (s.products || []).forEach(function(p) {
+      if (p.status === 'approved' && p.skuVaultSku) {
+        approved.add(p.skuVaultSku);
+      }
+    });
+  });
+  return approved;
+}
+
 // ──────────────────────────────────────────
-// GAS API CALL
+// CONFETTI
+// ──────────────────────────────────────────
+
+function launchConfetti() {
+  if (!FLAGS.CONFETTI) return;
+  var canvas = document.getElementById('confetti-canvas');
+  var ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+
+  var colors = ['#E91E8C','#FCE4EC','#FFFFFF','#FFD700','#FF69B4','#C2185B','#F8BBD0'];
+  var pieces = [];
+  for (var i = 0; i < 72; i++) {
+    pieces.push({
+      x:   Math.random() * canvas.width,
+      y:   Math.random() * -canvas.height * 0.5,
+      w:   Math.random() * 10 + 5,
+      h:   Math.random() * 5  + 3,
+      c:   colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * 360,
+      vx:  (Math.random() - 0.5) * 2.5,
+      vy:  Math.random() * 4 + 2.5,
+      vr:  (Math.random() - 0.5) * 7
+    });
+  }
+
+  var start    = Date.now();
+  var duration = 1500;
+
+  (function draw() {
+    var elapsed  = Date.now() - start;
+    var progress = Math.min(elapsed / duration, 1);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(function(p) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - progress * 1.1);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+    });
+    if (progress < 1) {
+      requestAnimationFrame(draw);
+    } else {
+      canvas.style.display = 'none';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  })();
+}
+
+// ──────────────────────────────────────────
+// GAS API
 // ──────────────────────────────────────────
 
 async function gasPost(payload) {
-  if (!state.gasUrl) {
-    openSettings();
-    throw new Error('GAS URL not configured.');
-  }
-  var res = await fetch(state.gasUrl, {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  });
+  if (!state.gasUrl) { openSettings(); throw new Error('GAS URL not configured.'); }
+  var res  = await fetch(state.gasUrl, { method: 'POST', body: JSON.stringify(payload) });
   var data = await res.json();
   if (data.error) throw new Error(data.error);
   return data;
 }
 
 // ──────────────────────────────────────────
-// SKUVAULT PO LOOKUP (non-blocking)
+// PO AUTOCOMPLETE
 // ──────────────────────────────────────────
 
-// Called on every keystroke in the PO field (debounced)
+function getPoSuggestions(query) {
+  if (!FLAGS.PO_AUTOCOMPLETE || query.length < 3) return [];
+  var q = query.toLowerCase(), seen = new Set(), out = [];
+  state.sessions.forEach(function(s) {
+    (s.products || []).forEach(function(p) {
+      if (!p.poNumber) return;
+      if (p.poNumber.toLowerCase().indexOf(q) >= 0 && !seen.has(p.poNumber)) {
+        seen.add(p.poNumber);
+        out.push(p.poNumber);
+      }
+    });
+  });
+  return out.slice(0, 6);
+}
+
+function renderPoAutocomplete(query) {
+  var el   = document.getElementById('po-autocomplete');
+  var sugg = getPoSuggestions(query);
+  if (!sugg.length) { el.innerHTML = ''; el.classList.remove('open'); autocompleteOpen = false; return; }
+  el.innerHTML = sugg.map(function(po) {
+    return '<div class="autocomplete-item" onmousedown="selectPoSuggestion(\'' +
+           po.replace(/'/g, "\\'") + '\')">' + po + '</div>';
+  }).join('');
+  el.classList.add('open');
+  autocompleteOpen = true;
+}
+
+function selectPoSuggestion(po) {
+  document.getElementById('po-input').value = po;
+  closePoAutocomplete();
+  onPoInput();
+}
+
+function closePoAutocomplete() {
+  document.getElementById('po-autocomplete').classList.remove('open');
+  autocompleteOpen = false;
+}
+
+function onPoFocus() {
+  var po = document.getElementById('po-input').value.trim();
+  if (po.length >= 3) renderPoAutocomplete(po);
+}
+
+function onPoBlur() {
+  setTimeout(closePoAutocomplete, 180);
+}
+
+// ──────────────────────────────────────────
+// SKUVAULT / ASANA LOOKUP
+// ──────────────────────────────────────────
+
 function onPoInput() {
   checkAddReady();
+  closePoAutocomplete();
   clearTimeout(svLookupTimer);
-
   var po = document.getElementById('po-input').value.trim();
   if (!po) { clearSvLookup(); return; }
-
-  // Show subtle "looking…" text but don't block anything
-  document.getElementById('sv-result').innerHTML =
-    '<div class="sv-looking">🔍 Looking up PO…</div>';
-
+  renderPoAutocomplete(po);
+  document.getElementById('sv-result').innerHTML = '<div class="sv-looking">🔍 Looking up PO…</div>';
   svLookupTimer = setTimeout(function() { runPoLookup(po); }, 700);
 }
 
 async function runPoLookup(po) {
   try {
     var result = await gasPost({ action: 'lookupPO', poNumber: po });
-    state.svLookup       = result.found ? result : null;
-    state.svSelectedItem = null;
+    state.svLookup          = result.found ? result : null;
+    state.svSelectedItem    = null;
+    state.svSelectedItems   = [];
+    state.showPriorApproved = false;
     renderSvResult(result);
     checkAddReady();
   } catch (err) {
-    // Silent fail — SKUVault is non-blocking
     clearSvLookup();
   }
 }
 
 function clearSvLookup() {
-  state.svLookup       = null;
-  state.svSelectedItem = null;
+  state.svLookup          = null;
+  state.svSelectedItem    = null;
+  state.svSelectedItems   = [];
+  state.showPriorApproved = false;
   document.getElementById('sv-result').innerHTML = '';
-  // Reset photo area back to camera prompt if Tara hasn't taken a manual photo
-  if (!state.pendingPhoto) {
-    document.getElementById('photo-area').innerHTML =
-      '<div class="photo-tap-zone" onclick="triggerCamera()">' +
-        '<div class="photo-tap-icon">📷</div>' +
-        '<div>Tap to take photo</div>' +
-      '</div>';
-  }
+  if (!state.pendingPhoto) resetPhotoArea();
   checkAddReady();
+}
+
+function resetPhotoArea() {
+  document.getElementById('photo-area').innerHTML =
+    '<div class="photo-tap-zone" onclick="triggerCamera()">' +
+      '<div class="photo-tap-icon">📷</div><div>Tap to take photo</div>' +
+    '</div>';
 }
 
 function renderSvResult(result) {
   var el = document.getElementById('sv-result');
-
   if (!result || !result.found) {
-    // PO not in SKUVault — clear result area and reset photo if no manual photo taken
     el.innerHTML = '';
-    if (!state.pendingPhoto) {
-      document.getElementById('photo-area').innerHTML =
-        '<div class="photo-tap-zone" onclick="triggerCamera()">' +
-          '<div class="photo-tap-icon">📷</div>' +
-          '<div>Tap to take photo</div>' +
-        '</div>';
-    }
+    if (!state.pendingPhoto) resetPhotoArea();
     return;
   }
 
-  var items = result.items;
-  var html  = '<div class="sv-found-label">✓ Found in SKUVault — ' +
-              items.length + ' item' + (items.length > 1 ? 's' : '') + '</div>';
+  var items         = result.items || [];
+  var isAsana       = result.sourceSystem === 'asana';
+  var priorApproved = scanPriorApprovals();
 
+  var activeItems = [], priorItems = [];
   items.forEach(function(item, i) {
-    var imgHtml = item.imageUrl
-      ? '<img class="sv-item-img" src="' + item.imageUrl + '" alt="Product">'
-      : '<div class="sv-item-img-placeholder">📦</div>';
-
-    html += '<div class="sv-item-btn" id="sv-item-' + i + '" onclick="selectSvItem(' + i + ')">' +
-      imgHtml +
-      '<div>' +
-        (item.sku   ? '<div class="sv-item-sku">'   + item.sku   + '</div>' : '') +
-        (item.title ? '<div class="sv-item-title">'  + item.title + '</div>' : '<div class="sv-item-title" style="color:var(--text-light)">No description</div>') +
-        (item.qty   ? '<div class="sv-item-qty">Expected qty: ' + item.qty + '</div>' : '') +
-      '</div>' +
-    '</div>';
+    if (FLAGS.PRIOR_CHECK_AWARENESS && item.sku && priorApproved.has(item.sku)) {
+      priorItems.push({ item: item, idx: i });
+    } else {
+      activeItems.push({ item: item, idx: i });
+    }
   });
+
+  var sourceLabel     = isAsana
+    ? '✓ Found in Asana' + (result.clientName ? ' · ' + result.clientName : '')
+    : '✓ Found in SKUVault — ' + items.length + ' item' + (items.length !== 1 ? 's' : '');
+  var foundLabelClass = isAsana ? 'sv-found-label asana-label' : 'sv-found-label';
+  var badgeClass      = isAsana ? 'asana' : 'skuvault';
+  var badgeLabel      = isAsana ? 'Asana' : 'SKUVault';
+  var grouped         = FLAGS.GROUPED_CHECKS && activeItems.length > 1;
+
+  var html = '<div class="sv-found-header">' +
+    '<div class="' + foundLabelClass + '">' + sourceLabel + '</div>' +
+    '<span class="sv-source-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+  '</div>';
+
+  if (isAsana && result.projectName) {
+    html += '<div style="font-size:12px;color:var(--text-light);margin-bottom:10px">📁 ' + result.projectName + '</div>';
+  }
+
+  activeItems.forEach(function(entry) {
+    html += buildSvItemHtml(entry.item, entry.idx, false, grouped);
+  });
+
+  if (grouped) {
+    html += '<div id="bundle-btn-wrap" style="display:none">' +
+            '<button class="bundle-btn" onclick="bundleSelectedItems()">📦 Add selected as one bundle</button>' +
+            '</div>';
+  }
+
+  if (priorItems.length) {
+    html += '<button class="sv-prior-toggle" onclick="togglePriorApproved()">' +
+            '⚠️ <span id="prior-toggle-label">' + priorItems.length + ' item' +
+            (priorItems.length > 1 ? 's' : '') + ' already approved — tap to show</span></button>';
+    html += '<div id="sv-prior-items" style="display:none">';
+    priorItems.forEach(function(entry) {
+      html += buildSvItemHtml(entry.item, entry.idx, true, false);
+    });
+    html += '</div>';
+  }
 
   el.innerHTML = html;
 
-  // Auto-select single items so Tara doesn't have to tap
-  if (items.length === 1) selectSvItem(0);
+  if (activeItems.length === 1) {
+    if (FLAGS.GROUPED_CHECKS) toggleSvItemGrouped(activeItems[0].idx);
+    else selectSvItem(activeItems[0].idx);
+  }
+}
+
+function buildSvItemHtml(item, idx, isPrior, groupedMode) {
+  var imgHtml = item.imageUrl
+    ? '<img class="sv-item-img" src="' + item.imageUrl + '" alt="Product">'
+    : '<div class="sv-item-img-placeholder">📦</div>';
+
+  var classes = 'sv-item-btn';
+  if (isPrior)      classes += ' prior-approved';
+  if (groupedMode)  classes += ' grouped-mode';
+
+  var clickFn = groupedMode ? 'toggleSvItemGrouped(' + idx + ')' : 'selectSvItem(' + idx + ')';
+  var checkHtml = groupedMode ? '<span class="sv-item-check"></span>' : '';
+
+  return '<div class="' + classes + '" id="sv-item-' + idx + '" onclick="' + clickFn + '">' +
+    imgHtml +
+    '<div style="flex:1;min-width:0">' +
+      (item.sku   ? '<div class="sv-item-sku">'   + item.sku   + '</div>' : '') +
+      (item.title ? '<div class="sv-item-title">'  + item.title + '</div>'
+                  : '<div class="sv-item-title" style="color:var(--text-light)">No description</div>') +
+      (item.qty   ? '<div class="sv-item-qty">Expected qty: ' + item.qty + '</div>' : '') +
+      (isPrior    ? '<div class="sv-item-prior-tag">✓ Previously approved</div>' : '') +
+    '</div>' +
+    checkHtml +
+  '</div>';
+}
+
+function togglePriorApproved() {
+  state.showPriorApproved = !state.showPriorApproved;
+  var el    = document.getElementById('sv-prior-items');
+  var label = document.getElementById('prior-toggle-label');
+  if (!el) return;
+  var count = priorItems ? priorItems.length : 0;
+  if (state.svLookup) {
+    var pa = scanPriorApprovals();
+    count  = state.svLookup.items.filter(function(it){ return pa.has(it.sku); }).length;
+  }
+  if (state.showPriorApproved) {
+    el.style.display = 'block';
+    if (label) label.textContent = count + ' previously approved item' + (count > 1 ? 's' : '') + ' — tap to hide';
+  } else {
+    el.style.display = 'none';
+    if (label) label.textContent = count + ' item' + (count > 1 ? 's' : '') + ' already approved — tap to show';
+  }
 }
 
 function selectSvItem(idx) {
   state.svSelectedItem = idx;
   var item = state.svLookup.items[idx];
-
-  // Highlight the selected item
-  document.querySelectorAll('.sv-item-btn').forEach(function(b) {
-    b.classList.remove('selected');
-  });
+  document.querySelectorAll('.sv-item-btn').forEach(function(b){ b.classList.remove('selected'); });
   var btn = document.getElementById('sv-item-' + idx);
   if (btn) btn.classList.add('selected');
-
-  // Only auto-fill photo area if Tara hasn't already taken a manual photo
   if (!state.pendingPhoto) {
     if (item.imageUrl) {
       document.getElementById('photo-area').innerHTML =
         '<div class="photo-preview-wrap">' +
           '<img class="photo-preview-img" src="' + item.imageUrl + '" alt="' + (item.title || 'Product') + '">' +
-          '<div class="photo-retake-overlay">' +
-            '<button class="photo-retake-btn" onclick="triggerCamera()">📷 Use own photo instead</button>' +
-          '</div>' +
+          '<div class="photo-retake-overlay"><button class="photo-retake-btn" onclick="triggerCamera()">📷 Use own photo instead</button></div>' +
         '</div>';
     } else {
-      // Item found but no image — keep camera prompt, update hint text
-      document.getElementById('photo-area').innerHTML =
-        '<div class="photo-tap-zone" onclick="triggerCamera()">' +
-          '<div class="photo-tap-icon">📷</div>' +
-          '<div>No image in SKUVault — tap to take photo</div>' +
-        '</div>';
+      resetPhotoArea();
     }
+  }
+  checkAddReady();
+}
+
+function toggleSvItemGrouped(idx) {
+  var pos = state.svSelectedItems.indexOf(idx);
+  if (pos >= 0) state.svSelectedItems.splice(pos, 1);
+  else state.svSelectedItems.push(idx);
+
+  if (state.svLookup) {
+    state.svLookup.items.forEach(function(_, i) {
+      var btn = document.getElementById('sv-item-' + i);
+      if (!btn) return;
+      if (state.svSelectedItems.indexOf(i) >= 0) btn.classList.add('selected');
+      else btn.classList.remove('selected');
+    });
+  }
+
+  var bwrap = document.getElementById('bundle-btn-wrap');
+  if (bwrap) bwrap.style.display = state.svSelectedItems.length >= 2 ? 'block' : 'none';
+
+  if (state.svSelectedItems.length === 1 && !state.pendingPhoto) {
+    var item = state.svLookup.items[state.svSelectedItems[0]];
+    if (item && item.imageUrl) {
+      document.getElementById('photo-area').innerHTML =
+        '<div class="photo-preview-wrap">' +
+          '<img class="photo-preview-img" src="' + item.imageUrl + '" alt="Product">' +
+          '<div class="photo-retake-overlay"><button class="photo-retake-btn" onclick="triggerCamera()">📷 Use own photo instead</button></div>' +
+        '</div>';
+    } else {
+      resetPhotoArea();
+    }
+  } else if (state.svSelectedItems.length === 0 && !state.pendingPhoto) {
+    resetPhotoArea();
   }
 
   checkAddReady();
+}
+
+function bundleSelectedItems() {
+  if (state.svSelectedItems.length >= 2) addToQueue();
 }
 
 // ──────────────────────────────────────────
@@ -1053,11 +1597,9 @@ function openSettings() {
   document.getElementById('cfg-gas-url').value = state.gasUrl;
   document.getElementById('settings-overlay').classList.add('active');
 }
-
 function closeSettings() {
   document.getElementById('settings-overlay').classList.remove('active');
 }
-
 function saveSettings() {
   var url = document.getElementById('cfg-gas-url').value.trim();
   state.gasUrl = url;
@@ -1070,27 +1612,80 @@ function saveSettings() {
 // HOME
 // ──────────────────────────────────────────
 
+function setHomeFilter(f) {
+  state.homeFilter = f;
+  document.querySelectorAll('#home-filter-chips .chip').forEach(function(c) {
+    c.classList.toggle('active', c.dataset.filter === f);
+  });
+  renderHome();
+}
+
+function onHomeSearch(val) {
+  state.homeSearch = val;
+  renderHome();
+}
+
+function sessionMatchesSearch(s, q) {
+  if (!q) return true;
+  q = q.toLowerCase();
+  return (s.products || []).some(function(p) {
+    return (p.poNumber     && p.poNumber.toLowerCase().indexOf(q) >= 0) ||
+           (p.skuVaultSku  && p.skuVaultSku.toLowerCase().indexOf(q) >= 0) ||
+           (p.productTitle && p.productTitle.toLowerCase().indexOf(q) >= 0);
+  });
+}
+
+function sessionMatchesFilter(s, f) {
+  if (f === 'all')          return true;
+  if (f === 'rejections')   return (s.products || []).some(function(p){ return p.status === 'rejected'; });
+  if (f === 'image-update') return (s.products || []).some(function(p){ return p.imageUpdateFlag; });
+  return true;
+}
+
 function renderHome() {
-  var el = document.getElementById('home-history');
-  if (!state.sessions.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No sessions yet</div></div>';
+  var el       = document.getElementById('home-history');
+  var filtered = state.sessions.filter(function(s) {
+    return sessionMatchesFilter(s, state.homeFilter) && sessionMatchesSearch(s, state.homeSearch);
+  });
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>' +
+      '<div class="empty-msg">' +
+      (state.homeSearch || state.homeFilter !== 'all' ? 'No matching sessions' : 'No sessions yet') +
+      '</div></div>';
     return;
   }
-  el.innerHTML = state.sessions.slice(0, 12).map(function(s) {
-    var total    = s.products.length;
-    var approved = s.products.filter(function(p){ return p.status === 'approved'; }).length;
-    var rejected = s.products.filter(function(p){ return p.status === 'rejected'; }).length;
-    var pending  = total - approved - rejected;
+
+  el.innerHTML = filtered.slice(0, 20).map(function(s) {
+    var products  = s.products || [];
+    var total     = products.length;
+    var approved  = products.filter(function(p){ return p.status === 'approved'; }).length;
+    var rejected  = products.filter(function(p){ return p.status === 'rejected'; }).length;
+    var imgUpdate = products.filter(function(p){ return p.imageUpdateFlag; }).length;
+    var pending   = total - approved - rejected;
+
+    var poNums = [];
+    products.forEach(function(p) {
+      if (p.poNumber && poNums.indexOf(p.poNumber) === -1) poNums.push(p.poNumber);
+    });
+    var posLabel = poNums.slice(0, 2).join(', ') + (poNums.length > 2 ? ' +' + (poNums.length - 2) + ' more' : '');
+
+    var titles = products.map(function(p){ return p.productTitle || ''; })
+      .filter(Boolean).filter(function(t, i, a){ return a.indexOf(t) === i; });
+    var titlesLabel = titles.slice(0, 2).join(' · ') + (titles.length > 2 ? '…' : '');
+
     return '<div class="session-row" onclick="viewPastSession(\'' + s.id + '\')">' +
-      '<div>' +
-        '<div class="session-row-title">' + fmtShortDate(s.createdAt) + '</div>' +
-        '<div class="session-row-sub">' + total + ' product' + (total !== 1 ? 's' : '') + '</div>' +
+      '<div class="session-row-header">' +
+        '<div class="session-row-date">' + fmtShortDate(s.createdAt) + '</div>' +
+        '<div class="session-row-stats">' +
+          (approved  ? '<span class="stat-pill" style="background:var(--green-bg);color:var(--green)">' + approved + '✓</span>' : '') +
+          (rejected  ? '<span class="stat-pill" style="background:var(--red-bg);color:var(--red)">'     + rejected + '✗</span>' : '') +
+          (pending   ? '<span class="stat-pill" style="background:var(--amber-bg);color:var(--amber)">' + pending  + '⏳</span>' : '') +
+          (imgUpdate ? '<span class="stat-pill" style="background:var(--blue-bg);color:var(--blue)">📸</span>' : '') +
+        '</div>' +
       '</div>' +
-      '<div class="session-row-stats">' +
-        (approved ? '<span class="stat-pill" style="background:var(--green-bg);color:var(--green)">' + approved + '✓</span>' : '') +
-        (rejected ? '<span class="stat-pill" style="background:var(--red-bg);color:var(--red)">'     + rejected + '✗</span>' : '') +
-        (pending  ? '<span class="stat-pill" style="background:var(--amber-bg);color:var(--amber)">' + pending  + '⏳</span>' : '') +
-      '</div>' +
+      (posLabel    ? '<div class="session-row-pos">PO ' + posLabel + ' · ' + total + ' item' + (total !== 1 ? 's' : '') + '</div>' : '') +
+      (titlesLabel ? '<div class="session-row-products">' + titlesLabel + '</div>' : '') +
     '</div>';
   }).join('');
 }
@@ -1113,21 +1708,12 @@ function goHome() {
 // ──────────────────────────────────────────
 
 function startNewSession() {
-  if (!state.gasUrl) {
-    showToast('Please configure the app first', 'red');
-    openSettings();
-    return;
-  }
-  state.session = {
-    id:        uid('sess'),
-    createdAt: new Date().toISOString(),
-    products:  []
-  };
+  if (!state.gasUrl) { showToast('Please configure the app first', 'red'); openSettings(); return; }
+  state.session = { id: uid('sess'), createdAt: new Date().toISOString(), products: [] };
   state.pendingPhoto = null;
   resetAddForm();
   renderAddQueue();
-  document.getElementById('add-session-label').textContent =
-    'Session · ' + fmtShortDate(state.session.createdAt);
+  document.getElementById('add-session-label').textContent = 'Session · ' + fmtShortDate(state.session.createdAt);
   showScreen('screen-add');
 }
 
@@ -1157,9 +1743,7 @@ async function handlePhoto(e) {
     document.getElementById('photo-area').innerHTML =
       '<div class="photo-preview-wrap">' +
         '<img class="photo-preview-img" src="' + resized + '" alt="Preview">' +
-        '<div class="photo-retake-overlay">' +
-          '<button class="photo-retake-btn" onclick="triggerCamera()">📷 Retake</button>' +
-        '</div>' +
+        '<div class="photo-retake-overlay"><button class="photo-retake-btn" onclick="triggerCamera()">📷 Retake</button></div>' +
       '</div>';
     checkAddReady();
   };
@@ -1168,95 +1752,118 @@ async function handlePhoto(e) {
 }
 
 function checkAddReady() {
-  var hasPO       = document.getElementById('po-input').value.trim().length > 0;
-  var hasPhoto    = !!state.pendingPhoto;
-  var hasSvImage  = !!(state.svLookup &&
-                       state.svSelectedItem !== null &&
-                       state.svLookup.items[state.svSelectedItem] &&
-                       state.svLookup.items[state.svSelectedItem].imageUrl);
+  var hasPO    = document.getElementById('po-input').value.trim().length > 0;
+  var hasPhoto = !!state.pendingPhoto;
+  var hasSvImage;
+
+  if (FLAGS.GROUPED_CHECKS) {
+    hasSvImage = state.svSelectedItems.length > 0 && !!state.svLookup &&
+                 state.svSelectedItems.some(function(i) {
+                   return state.svLookup.items[i] && state.svLookup.items[i].imageUrl;
+                 });
+  } else {
+    hasSvImage = !!(state.svLookup &&
+                    state.svSelectedItem !== null &&
+                    state.svLookup.items[state.svSelectedItem] &&
+                    state.svLookup.items[state.svSelectedItem].imageUrl);
+  }
+
   document.getElementById('add-btn').disabled = !(hasPO && (hasPhoto || hasSvImage));
+}
+
+function buildFileName(po) {
+  var poClean = po.replace(/[^a-zA-Z0-9]/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
+  var d = new Date(), pad = function(n){ return n < 10 ? '0' + n : String(n); };
+  return 'PO-' + poClean + '-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' +
+         pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.jpg';
 }
 
 async function addToQueue() {
   var po = document.getElementById('po-input').value.trim();
   if (!po) return;
 
-  // Resolve which image source to use
-  var svItem     = (state.svLookup && state.svSelectedItem !== null)
-                   ? state.svLookup.items[state.svSelectedItem]
-                   : null;
-  var hasSvImage = !!(svItem && svItem.imageUrl);
+  // ── Grouped bundle (2+ items selected) ──
+  if (FLAGS.GROUPED_CHECKS && state.svSelectedItems.length > 1 && state.svLookup) {
+    var selItems  = state.svSelectedItems.map(function(i){ return state.svLookup.items[i]; });
+    var firstImg  = selItems.find(function(it){ return it && it.imageUrl; });
+    var photoUrl  = '';
+    var photoB64  = state.pendingPhoto || null;
 
-  if (!state.pendingPhoto && !hasSvImage) return;
+    if (state.pendingPhoto) {
+      showLoading('Uploading photo…');
+      try {
+        var uRes = await gasPost({ action: 'uploadPhoto', photoBase64: state.pendingPhoto, fileName: buildFileName(po) });
+        photoUrl = uRes.url;
+      } catch (err) { hideLoading(); showToast('Upload failed — check connection', 'red'); return; }
+    } else if (firstImg) {
+      photoUrl = firstImg.imageUrl;
+    }
 
-  var productId    = uid('prod');
-  var photoUrl     = '';
-  var photoBase64  = state.pendingPhoto || null;
+    var skus   = selItems.map(function(it){ return it.sku   || ''; }).filter(Boolean);
+    var titles = selItems.map(function(it){ return it.title || ''; }).filter(Boolean);
 
+    state.session.products.push({
+      id: uid('prod'), poNumber: po, photoBase64: photoB64, photoUrl: photoUrl,
+      status: 'pending', approver: '', rejectionReason: '', rejectionNotes: '',
+      imageUpdateFlag: false, createdAt: new Date().toISOString(), reviewedAt: null,
+      skuVaultPoId: state.svLookup.poId || null, skuVaultSku: skus[0] || '',
+      productTitle: titles.join(' + ') || '', expectedQty: null,
+      svExistingNotes: state.svLookup.existingNotes || '',
+      groupedSkus: skus, sourceSystem: state.svLookup.sourceSystem || 'skuvault',
+      clientName: state.svLookup.clientName || '', projectName: state.svLookup.projectName || '',
+      asanaTaskGid: state.svLookup.asanaTaskGid || '', asanaSubtaskGid: ''
+    });
+    hideLoading(); resetAddForm(); renderAddQueue(); showToast('Bundle added!', 'pink');
+    return;
+  }
+
+  // ── Single item ──
+  var svItem   = null, hasSvImg = false;
+  if (FLAGS.GROUPED_CHECKS && state.svSelectedItems.length === 1 && state.svLookup) {
+    svItem = state.svLookup.items[state.svSelectedItems[0]]; hasSvImg = !!(svItem && svItem.imageUrl);
+  } else if (!FLAGS.GROUPED_CHECKS && state.svSelectedItem !== null && state.svLookup) {
+    svItem = state.svLookup.items[state.svSelectedItem]; hasSvImg = !!(svItem && svItem.imageUrl);
+  }
+  if (!state.pendingPhoto && !hasSvImg) return;
+
+  var photoUrl  = '', photoB64 = state.pendingPhoto || null;
   if (state.pendingPhoto) {
-    // Manual photo — upload to Drive as before
     showLoading('Uploading photo…');
     try {
-      var res = await gasPost({
-        action:      'uploadPhoto',
-        photoBase64: state.pendingPhoto,
-        fileName:    (function() {
-          var poClean = po.replace(/[^a-zA-Z0-9]/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
-          var d = new Date();
-          var pad = function(n) { return n < 10 ? '0' + n : String(n); };
-          var stamp = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
-                      '-' + pad(d.getHours()) + pad(d.getMinutes());
-          return 'PO-' + poClean + '-' + stamp + '.jpg';
-        })()
-      });
+      var res = await gasPost({ action: 'uploadPhoto', photoBase64: state.pendingPhoto, fileName: buildFileName(po) });
       photoUrl = res.url;
-    } catch (err) {
-      hideLoading();
-      showToast('Upload failed — check connection', 'red');
-      return;
-    }
+    } catch (err) { hideLoading(); showToast('Upload failed — check connection', 'red'); return; }
   } else {
-    // SKUVault image — use it directly, no Drive upload needed
     photoUrl = svItem.imageUrl;
   }
 
   state.session.products.push({
-    id:              productId,
-    poNumber:        po,
-    photoBase64:     photoBase64,
-    photoUrl:        photoUrl,
-    status:          'pending',
-    approver:        '',
-    rejectionReason: '',
-    rejectionNotes:  '',
-    createdAt:       new Date().toISOString(),
-    reviewedAt:      null,
-    // SKUVault fields — null/empty when entered manually
+    id: uid('prod'), poNumber: po, photoBase64: photoB64, photoUrl: photoUrl,
+    status: 'pending', approver: '', rejectionReason: '', rejectionNotes: '',
+    imageUpdateFlag: false, createdAt: new Date().toISOString(), reviewedAt: null,
     skuVaultPoId:    state.svLookup ? state.svLookup.poId          : null,
     skuVaultSku:     svItem         ? svItem.sku                   : '',
     productTitle:    svItem         ? svItem.title                 : '',
     expectedQty:     svItem         ? svItem.qty                   : null,
-    svExistingNotes: state.svLookup ? state.svLookup.existingNotes : ''
+    svExistingNotes: state.svLookup ? state.svLookup.existingNotes : '',
+    groupedSkus: [],
+    sourceSystem:    state.svLookup ? (state.svLookup.sourceSystem || 'skuvault') : 'manual',
+    clientName:      state.svLookup ? (state.svLookup.clientName   || '') : '',
+    projectName:     state.svLookup ? (state.svLookup.projectName  || '') : '',
+    asanaTaskGid:    state.svLookup ? (state.svLookup.asanaTaskGid || '') : '',
+    asanaSubtaskGid: (svItem && svItem.asanaSubtaskGid) ? svItem.asanaSubtaskGid : ''
   });
 
-  hideLoading();
-  resetAddForm();
-  renderAddQueue();
-  showToast('Added to queue!', 'pink');
+  hideLoading(); resetAddForm(); renderAddQueue(); showToast('Added to queue!', 'pink');
 }
 
 function resetAddForm() {
-  state.pendingPhoto   = null;
-  state.svLookup       = null;
-  state.svSelectedItem = null;
+  state.pendingPhoto = null; state.svLookup = null;
+  state.svSelectedItem = null; state.svSelectedItems = []; state.showPriorApproved = false;
   clearTimeout(svLookupTimer);
-  document.getElementById('po-input').value  = '';
+  document.getElementById('po-input').value      = '';
   document.getElementById('sv-result').innerHTML = '';
-  document.getElementById('photo-area').innerHTML =
-    '<div class="photo-tap-zone" onclick="triggerCamera()">' +
-      '<div class="photo-tap-icon">📷</div>' +
-      '<div>Tap to take photo</div>' +
-    '</div>';
+  closePoAutocomplete(); resetPhotoArea();
   document.getElementById('add-btn').disabled = true;
 }
 
@@ -1267,21 +1874,19 @@ function renderAddQueue() {
 
   if (!products.length) {
     document.getElementById('add-queue-list').innerHTML =
-      '<div class="empty-state" style="padding:20px">' +
-        '<div class="empty-msg" style="font-size:14px">No products yet — add one above</div>' +
-      '</div>';
+      '<div class="empty-state" style="padding:20px"><div class="empty-msg" style="font-size:14px">No products yet — add one above</div></div>';
     return;
   }
 
   document.getElementById('add-queue-list').innerHTML = products.map(function(p, i) {
-    var subLine = p.productTitle
-      ? (p.skuVaultSku ? p.skuVaultSku + ' · ' : '') + p.productTitle
+    var sub = p.productTitle
+      ? (p.skuVaultSku && !(p.groupedSkus && p.groupedSkus.length) ? p.skuVaultSku + ' · ' : '') + p.productTitle
       : 'Added ' + fmtShortDate(p.createdAt);
     return '<div class="queue-item">' +
-      '<img class="queue-item-thumb" src="' + (p.photoBase64 || p.photoUrl) + '" alt="Product">' +
+      '<img class="queue-item-thumb" src="' + (p.photoBase64 || p.photoUrl || '') + '" alt="Product">' +
       '<div class="queue-item-body">' +
         '<div class="queue-item-po">' + p.poNumber + '</div>' +
-        '<div class="queue-item-sub">' + subLine + '</div>' +
+        '<div class="queue-item-sub">' + sub + '</div>' +
       '</div>' +
       '<button class="queue-item-del" onclick="removeFromQueue(' + i + ')">✕</button>' +
     '</div>';
@@ -1307,11 +1912,9 @@ function renderReviewQueue() {
   var products = state.session.products;
   var reviewed = products.filter(function(p){ return p.status !== 'pending'; }).length;
   var total    = products.length;
-  var allDone  = reviewed === total;
 
-  document.getElementById('review-progress-label').textContent =
-    reviewed + ' of ' + total + ' reviewed';
-  document.getElementById('finish-btn').disabled = !allDone;
+  document.getElementById('review-progress-label').textContent = reviewed + ' of ' + total + ' reviewed';
+  document.getElementById('finish-btn').disabled = reviewed !== total;
 
   document.getElementById('review-queue-content').innerHTML = products.map(function(p) {
     var isTappable = p.status === 'pending';
@@ -1324,28 +1927,26 @@ function renderReviewQueue() {
       ? '<span style="color:var(--pink);font-weight:700;font-size:13px">Tap to review →</span>'
       : '<span style="font-size:12px;color:var(--text-light)">' + (p.approver || '') + '</span>';
     var rejectNote = p.rejectionReason
-      ? '<div class="product-card-rejection">' + p.rejectionReason +
-          (p.rejectionNotes ? ' · ' + p.rejectionNotes : '') + '</div>'
+      ? '<div class="product-card-rejection">' + p.rejectionReason + (p.rejectionNotes ? ' · ' + p.rejectionNotes : '') + '</div>'
       : '';
+    var imgFlag = p.imageUpdateFlag ? '<div class="product-card-image-flag">📸 Image update flagged</div>' : '';
 
     return '<div class="product-card ' + p.status + (isTappable ? ' tappable' : '') + '"' +
                (isTappable ? ' onclick="openProductReview(\'' + p.id + '\')"' : '') + '>' +
-      '<div class="product-card-img">' +
-        '<img src="' + (p.photoBase64 || p.photoUrl) + '" alt="Product">' +
-      '</div>' +
+      '<div class="product-card-img"><img src="' + (p.photoBase64 || p.photoUrl || '') + '" alt="Product"></div>' +
       '<div class="product-card-body">' +
         '<div>' +
           '<div class="product-card-po-label">PO Number</div>' +
           '<div class="product-card-po">' + p.poNumber + '</div>' +
           (p.productTitle
             ? '<div style="font-size:12px;color:var(--text-light);margin-top:2px">' +
-                (p.skuVaultSku ? '<span style="font-weight:700;color:var(--pink-dark)">' + p.skuVaultSku + '</span> · ' : '') +
-                p.productTitle +
-              '</div>'
+                (p.skuVaultSku && !(p.groupedSkus && p.groupedSkus.length)
+                  ? '<span style="font-weight:700;color:var(--pink-dark)">' + p.skuVaultSku + '</span> · ' : '') +
+                p.productTitle + '</div>'
             : '') +
         '</div>' +
         '<div class="product-card-footer">' + badge + hint + '</div>' +
-        rejectNote +
+        rejectNote + imgFlag +
       '</div>' +
     '</div>';
   }).join('');
@@ -1361,19 +1962,22 @@ function openProductReview(productId) {
 
   state.currentProductId = productId;
   state.selectedApprover = null;
+  state.imageUpdateFlag  = false;
 
-  document.getElementById('product-po-label').textContent = 'PO ' + p.poNumber;
-  // Show product title in header subtitle if available
-  document.querySelector('#screen-product .header-sub').textContent =
+  document.getElementById('product-po-label').textContent  = 'PO ' + p.poNumber;
+  document.getElementById('product-review-sub').textContent =
     p.productTitle
-      ? p.productTitle + (p.skuVaultSku ? '  ·  ' + p.skuVaultSku : '')
+      ? p.productTitle + (p.skuVaultSku && !(p.groupedSkus && p.groupedSkus.length) ? '  ·  ' + p.skuVaultSku : '')
       : 'Tap your name, then choose Approve or Reject';
-  document.getElementById('product-photo').src = p.photoBase64 || p.photoUrl;
+  document.getElementById('product-photo').src = p.photoBase64 || p.photoUrl || '';
 
   document.getElementById('approver-grid').innerHTML = APPROVERS.map(function(name) {
-    return '<button class="approver-btn" id="appr-' + name + '" onclick="selectApprover(\'' + name + '\')">' +
-      name + '</button>';
+    return '<button class="approver-btn" id="appr-' + name + '" onclick="selectApprover(\'' + name + '\')">' + name + '</button>';
   }).join('');
+
+  var flagSection = document.getElementById('image-flag-section');
+  flagSection.style.display = FLAGS.IMAGE_UPDATE_FLAG ? 'block' : 'none';
+  if (FLAGS.IMAGE_UPDATE_FLAG) renderImageFlagToggle();
 
   updateActionButtons();
   showScreen('screen-product');
@@ -1392,25 +1996,42 @@ function updateActionButtons() {
   document.getElementById('reject-btn').disabled  = !enabled;
 }
 
+function toggleImageUpdateFlag() {
+  state.imageUpdateFlag = !state.imageUpdateFlag;
+  renderImageFlagToggle();
+}
+
+function renderImageFlagToggle() {
+  var toggle = document.getElementById('image-flag-toggle');
+  var check  = document.getElementById('image-flag-check');
+  if (!toggle || !check) return;
+  if (state.imageUpdateFlag) {
+    toggle.classList.add('flagged');
+    check.textContent = '✓';
+  } else {
+    toggle.classList.remove('flagged');
+    check.textContent = '';
+  }
+}
+
 async function doApprove() {
   if (!state.selectedApprover) return;
   var p = state.session.products.find(function(x){ return x.id === state.currentProductId; });
   if (!p) return;
 
-  p.status     = 'approved';
-  p.approver   = state.selectedApprover;
-  p.reviewedAt = new Date().toISOString();
+  p.status          = 'approved';
+  p.approver        = state.selectedApprover;
+  p.reviewedAt      = new Date().toISOString();
+  p.imageUpdateFlag = state.imageUpdateFlag;
 
   showLoading('Saving approval…');
   try {
     await gasPost({ action: 'saveRecord', record: buildRecord(p) });
     persistSession();
     hideLoading();
-    showToast('Approved ✓', 'green');
+    showToast(state.imageUpdateFlag ? 'Approved ✓ · Image flagged 📸' : 'Approved ✓', 'green');
   } catch (err) {
-    hideLoading();
-    persistSession();
-    showToast('Saved locally — sync failed', 'red');
+    hideLoading(); persistSession(); showToast('Saved locally — sync failed', 'red');
   }
   renderReviewQueue();
   showScreen('screen-review');
@@ -1423,10 +2044,9 @@ async function doApprove() {
 function openRejectSheet() {
   if (!state.selectedApprover) return;
   state.selectedReason = null;
-
   document.getElementById('reject-notes').value = '';
-  document.getElementById('notes-required-flag').style.display  = 'none';
-  document.getElementById('notes-optional-flag').style.display  = 'inline';
+  document.getElementById('notes-required-flag').style.display = 'none';
+  document.getElementById('notes-optional-flag').style.display = 'inline';
   document.getElementById('confirm-reject-btn').disabled = true;
 
   document.getElementById('reason-grid').innerHTML = REJECTION_REASONS.map(function(r) {
@@ -1446,7 +2066,6 @@ function selectReason(r) {
   document.querySelectorAll('.reason-btn').forEach(function(b){ b.classList.remove('selected'); });
   document.getElementById('rsn-' + r.replace(/\W/g, '_')).classList.add('selected');
   document.getElementById('confirm-reject-btn').disabled = false;
-
   var isOther = r === 'Other';
   document.getElementById('notes-required-flag').style.display = isOther ? 'inline' : 'none';
   document.getElementById('notes-optional-flag').style.display = isOther ? 'none'   : 'inline';
@@ -1470,6 +2089,7 @@ async function submitRejection() {
   p.rejectionReason = state.selectedReason;
   p.rejectionNotes  = notes;
   p.reviewedAt      = new Date().toISOString();
+  p.imageUpdateFlag = false;
 
   showLoading('Saving & notifying Slack…');
   try {
@@ -1478,9 +2098,7 @@ async function submitRejection() {
     hideLoading();
     showToast('Rejected — Slack notified', 'red');
   } catch (err) {
-    hideLoading();
-    persistSession();
-    showToast('Saved locally — sync failed', 'red');
+    hideLoading(); persistSession(); showToast('Saved locally — sync failed', 'red');
   }
   renderReviewQueue();
   showScreen('screen-review');
@@ -1494,25 +2112,30 @@ function buildRecord(p) {
   return {
     recordId:        uid('rec'),
     sessionId:       state.session.id,
-    poNumber:        p.poNumber,
+    poNumber:        p.poNumber          || '',
     status:          p.status.charAt(0).toUpperCase() + p.status.slice(1),
-    approverName:    p.approver        || '',
-    rejectionReason: p.rejectionReason || '',
-    rejectionNotes:  p.rejectionNotes  || '',
-    photoUrl:        p.photoUrl        || '',
-    reviewedAt:      p.reviewedAt      || '',
-    createdAt:       p.createdAt       || '',
+    approverName:    p.approver          || '',
+    rejectionReason: p.rejectionReason   || '',
+    rejectionNotes:  p.rejectionNotes    || '',
+    photoUrl:        p.photoUrl          || '',
+    reviewedAt:      p.reviewedAt        || '',
+    createdAt:       p.createdAt         || '',
     updatedAt:       new Date().toISOString(),
-    // SKUVault fields — empty strings when product was entered manually
-    skuVaultPoId:    p.skuVaultPoId    || null,
-    skuVaultSku:     p.skuVaultSku     || '',
-    productTitle:    p.productTitle    || '',
-    svExistingNotes: p.svExistingNotes || ''
+    skuVaultPoId:    p.skuVaultPoId      || null,
+    skuVaultSku:     p.skuVaultSku       || '',
+    productTitle:    p.productTitle      || '',
+    svExistingNotes: p.svExistingNotes   || '',
+    imageUpdateFlag: !!p.imageUpdateFlag,
+    sourceSystem:    p.sourceSystem      || 'manual',
+    clientName:      p.clientName        || '',
+    projectName:     p.projectName       || '',
+    asanaTaskGid:    p.asanaTaskGid      || '',
+    asanaSubtaskGid: p.asanaSubtaskGid   || '',
+    groupedSkus:     p.groupedSkus       || []
   };
 }
 
 function persistSession() {
-  // Strip base64 before writing to localStorage — it's too large and unnecessary
   var lean = Object.assign({}, state.session, {
     products: state.session.products.map(function(p) {
       var copy = Object.assign({}, p);
@@ -1530,6 +2153,7 @@ function persistSession() {
 function finishSession() {
   persistSession();
   renderSummary();
+  launchConfetti();
   showScreen('screen-summary');
 }
 
@@ -1546,42 +2170,41 @@ function renderSummary() {
   document.getElementById('summary-date-label').textContent = fmtDate(state.session.createdAt);
 
   document.getElementById('summary-stats').innerHTML =
-    '<div class="summary-cell">'  +
-      '<div class="summary-num num-total">'    + total    + '</div>' +
-      '<div class="summary-cell-label">Total</div>' +
-    '</div>' +
-    '<div class="summary-cell">' +
-      '<div class="summary-num num-approved">' + approved + '</div>' +
-      '<div class="summary-cell-label">Approved</div>' +
-    '</div>' +
-    '<div class="summary-cell">' +
-      '<div class="summary-num num-rejected">' + rejected + '</div>' +
-      '<div class="summary-cell-label">Rejected</div>' +
-    '</div>';
+    '<div class="summary-cell"><div class="summary-num num-total">'    + total    + '</div><div class="summary-cell-label">Total</div></div>' +
+    '<div class="summary-cell"><div class="summary-num num-approved">' + approved + '</div><div class="summary-cell-label">Approved</div></div>' +
+    '<div class="summary-cell"><div class="summary-num num-rejected">' + rejected + '</div><div class="summary-cell-label">Rejected</div></div>';
 
   document.getElementById('summary-list').innerHTML = products.map(function(p) {
     var rejectLine = p.rejectionReason
       ? '<div style="font-size:12px;color:var(--red);margin-top:5px;font-weight:500">' +
-          p.rejectionReason + (p.rejectionNotes ? ' · ' + p.rejectionNotes : '') +
-        '</div>'
+          p.rejectionReason + (p.rejectionNotes ? ' · ' + p.rejectionNotes : '') + '</div>'
       : '';
     var timeLine = p.reviewedAt
-      ? '<div style="font-size:11px;color:var(--text-light);margin-top:3px">' +
-          fmtShortDate(p.reviewedAt) + '</div>'
+      ? '<div style="font-size:11px;color:var(--text-light);margin-top:3px">' + fmtShortDate(p.reviewedAt) + '</div>'
       : '';
     var approverLabel = p.approver
       ? '<span style="font-size:12px;color:var(--text-light)">' + p.approver + '</span>'
       : '';
+    var imgFlag = p.imageUpdateFlag
+      ? '<span style="font-size:11px;color:var(--blue);margin-left:6px;font-weight:600">📸 Image update</span>'
+      : '';
+    var titleLine = p.productTitle
+      ? '<div style="font-size:12px;color:var(--text-light);margin-top:3px">' +
+          (p.skuVaultSku && !(p.groupedSkus && p.groupedSkus.length)
+            ? '<strong style="color:var(--pink-dark)">' + p.skuVaultSku + '</strong> · ' : '') +
+          p.productTitle + '</div>'
+      : '';
     return '<div class="card" style="margin-bottom:12px">' +
       '<div style="display:flex;align-items:center;gap:14px;padding:14px">' +
-        '<img src="' + (p.photoBase64 || p.photoUrl) + '"' +
-             ' style="width:68px;height:68px;object-fit:cover;border-radius:10px;background:#F5F5F5;flex-shrink:0"' +
+        '<img src="' + (p.photoBase64 || p.photoUrl || '') + '"' +
+             ' style="width:68px;height:68px;object-fit:contain;object-position:center;border-radius:10px;background:var(--pink-light);flex-shrink:0"' +
              ' alt="Product">' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-size:18px;font-weight:800;margin-bottom:5px">' + p.poNumber + '</div>' +
-          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          titleLine +
+          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px">' +
             '<span class="badge badge-' + p.status + '">' + p.status + '</span>' +
-            approverLabel +
+            approverLabel + imgFlag +
           '</div>' +
           rejectLine + timeLine +
         '</div>' +
@@ -1595,8 +2218,6 @@ function renderSummary() {
 // ──────────────────────────────────────────
 
 renderHome();
-
-// GAS URL has a built-in default — no configuration toast needed on first launch
 
 </script>
 </body>
