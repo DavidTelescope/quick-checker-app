@@ -228,22 +228,30 @@ textarea.field-input{min-height:90px;resize:none;line-height:1.5}
   .btn,.chip,.approver-btn,.reason-btn,.sv-item-btn,.session-row,.product-card,.flag-toggle,.image-flag-toggle{transition:none}
   #confetti-canvas{display:none!important}
 }
+.sv-provisional-notice{font-size:12px;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber);border-radius:8px;padding:6px 10px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sv-recheck-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;background:var(--blue-bg);color:var(--blue);border:1.5px solid var(--blue);touch-action:manipulation;margin-top:8px}
+.sv-recheck-btn:active{opacity:0.75}
 @media print{
   body>*:not(#print-label){display:none!important}
+  @page{size:6in 4in;margin:0}
   #print-label{
+    display:block!important;
+    position:fixed;
+    top:0;left:0;
+    width:6in;height:4in;
+    padding:0.35in 0.4in;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#FFFFFF;
+    text-align:center;
     display:flex!important;
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    text-align:center;
-    min-height:6in;
-    padding:0.4in;
-    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   }
-  @page{size:4in 6in;margin:0}
-  .pl-client{font-size:14pt;font-weight:700;color:#E91E8C;margin-bottom:10pt;text-transform:uppercase;letter-spacing:1pt}
-  .pl-project{font-size:22pt;font-weight:800;margin-bottom:16pt;line-height:1.2;color:#1A1A1A}
-  .pl-product{font-size:14pt;font-weight:600;color:#555;line-height:1.4}
+  #print-label,#print-label *{color:#000000!important;background:#FFFFFF!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pl-client{font-size:13pt;font-weight:700;margin-bottom:8pt;text-transform:uppercase;letter-spacing:1pt}
+  .pl-project{font-size:20pt;font-weight:800;margin-bottom:14pt;line-height:1.2}
+  .pl-product{font-size:13pt;font-weight:600;line-height:1.4}
 }
 </style>
 </head>
@@ -531,22 +539,28 @@ const REJECTION_REASONS = [
 const state = {
   gasUrl: localStorage.getItem('qc_gas_url') ||
           'https://script.google.com/macros/s/AKfycbyyc50fQe1F5TC7IL5R7e5WjThk-4lS1MUE9SiVR52ehjmdB9pG0-81vVZo7699lqft/exec',
-  session:           null,
-  currentProductId:  null,
-  selectedApprover:  null,
-  selectedReason:    null,
-  imageUpdateFlag:   false,
-  approveImageFlag:  false,
-  approveUrgent:     false,
-  pendingPhoto:      null,
-  soundEnabled:      localStorage.getItem('qc_sound') !== '0',
-  sessions:          JSON.parse(localStorage.getItem('qc_sessions') || '[]'),
-  svLookup:          null,
-  svSelectedItem:    null,
-  svSelectedItems:   [],
-  showPriorApproved: false,
-  homeFilter:        'all',
-  homeSearch:        ''
+  session:            null,
+  currentProductId:   null,
+  selectedApprover:   null,
+  selectedReason:     null,
+  imageUpdateFlag:    false,
+  approveImageFlag:   false,
+  approveUrgent:      false,
+  pendingPhoto:       null,
+  soundEnabled:       localStorage.getItem('qc_sound') !== '0',
+  sessions:           JSON.parse(localStorage.getItem('qc_sessions') || '[]'),
+  svLookup:           null,
+  svSelectedItem:     null,
+  svSelectedItems:    [],
+  showPriorApproved:  false,
+  homeFilter:         'all',
+  homeSearch:         '',
+  lookupSeqId:        0,
+  activeLookupId:     0,
+  bgCheckTimer:       null,
+  bgCheckTimer2:      null,
+  bgAbortCtrl:        null,
+  currentAsanaResult: null
 };
 
 var svLookupTimer = null, autocompleteOpen = false;
@@ -741,9 +755,11 @@ function launchConfetti(){
 }
 
 // ── GAS API ────────────────────────────────
-async function gasPost(payload){
+async function gasPost(payload, signal){
   if(!state.gasUrl){ openSettings(); throw new Error('GAS URL not configured.'); }
-  var res=await fetch(state.gasUrl,{method:'POST',body:JSON.stringify(payload)});
+  var opts={method:'POST',body:JSON.stringify(payload)};
+  if(signal) opts.signal=signal;
+  var res=await fetch(state.gasUrl,opts);
   var data=await res.json();
   if(data.error) throw new Error(data.error);
   return data;
@@ -791,25 +807,128 @@ function onPoFocus(){
 function onPoBlur(){ setTimeout(closePoAutocomplete,180); }
 
 // ── PO LOOKUP ──────────────────────────────
+function clearBgChecks(){
+  clearTimeout(state.bgCheckTimer);
+  clearTimeout(state.bgCheckTimer2);
+  state.bgCheckTimer=null;
+  state.bgCheckTimer2=null;
+  if(state.bgAbortCtrl){ try{state.bgAbortCtrl.abort();}catch(e){} state.bgAbortCtrl=null; }
+  state.currentAsanaResult=null;
+}
+
 function onPoInput(){
-  checkAddReady();closePoAutocomplete();clearTimeout(svLookupTimer);
+  checkAddReady();closePoAutocomplete();clearTimeout(svLookupTimer);clearBgChecks();
+  state.lookupSeqId++;
   var po=document.getElementById('po-input').value.trim();
   if(!po){clearSvLookup();return;}
   renderPoAutocomplete(po);
-  document.getElementById('sv-result').innerHTML='<div class="sv-looking">🔍 Looking up PO…</div>';
+  showLookupStatus('🔍 Checking SKUVault…');
   svLookupTimer=setTimeout(function(){runPoLookup(po);},700);
 }
 
+function showLookupStatus(msg){
+  document.getElementById('sv-result').innerHTML='<div class="sv-looking">'+escHtml(msg)+'</div>';
+}
+
 async function runPoLookup(po){
+  var seqId=state.lookupSeqId;
+  state.activeLookupId=seqId;
   try{
     var result=await gasPost({action:'lookupPO',poNumber:po});
+    if(state.activeLookupId!==seqId) return; // stale response
+    if(document.getElementById('po-input').value.trim()!==po) return; // PO changed
     state.svLookup=result.found?result:null;
     state.svSelectedItem=null;state.svSelectedItems=[];state.showPriorApproved=false;
-    renderSvResult(result);checkAddReady();
-  }catch(err){ clearSvLookup(); }
+    if(result.found&&result.sourceSystem==='asana'){
+      // Asana provisional result — start background SKUVault rechecks
+      state.currentAsanaResult=result;
+      renderSvResult(result,true);
+      startBgSkuVaultChecks(po,seqId,result);
+    }else{
+      state.currentAsanaResult=null;
+      renderSvResult(result,false);
+    }
+    checkAddReady();
+  }catch(err){
+    if(state.activeLookupId===seqId) clearSvLookup();
+  }
+}
+
+function startBgSkuVaultChecks(po,seqId,asanaResult){
+  // Two background recheck attempts: at 3s and 8s
+  state.bgCheckTimer=setTimeout(function(){bgSkuVaultCheck(po,seqId,asanaResult,1);},3000);
+  state.bgCheckTimer2=setTimeout(function(){bgSkuVaultCheck(po,seqId,asanaResult,2);},8000);
+}
+
+async function bgSkuVaultCheck(po,seqId,asanaResult,attempt){
+  if(state.activeLookupId!==seqId) return;
+  if(document.getElementById('po-input').value.trim()!==po) return;
+  var ctrl=new AbortController();
+  state.bgAbortCtrl=ctrl;
+  try{
+    var result=await gasPost({action:'lookupPO',poNumber:po,skuVaultOnly:true},ctrl.signal);
+    if(state.activeLookupId!==seqId) return;
+    if(document.getElementById('po-input').value.trim()!==po) return;
+    if(result.found&&result.sourceSystem==='skuvault'){
+      // SKUVault confirmed — merge useful Asana enrichment then replace result
+      if(asanaResult){
+        if(!result.assignedCCs||!result.assignedCCs.length) result.assignedCCs=asanaResult.assignedCCs||[];
+        if(!result.clientName) result.clientName=asanaResult.clientName||'';
+        if(!result.projectName) result.projectName=asanaResult.projectName||'';
+        if(!result.asanaTaskGid) result.asanaTaskGid=asanaResult.asanaTaskGid||'';
+      }
+      state.svLookup=result;
+      state.svSelectedItem=null;state.svSelectedItems=[];state.showPriorApproved=false;
+      state.currentAsanaResult=null;
+      renderSvResult(result,false);
+      checkAddReady();
+      clearBgChecks();
+    }
+    // If not found, leave provisional Asana result in place; 2nd attempt fires at 8s
+  }catch(err){}
+}
+
+async function recheckSkuVault(){
+  var po=document.getElementById('po-input').value.trim();
+  if(!po) return;
+  var seqId=state.activeLookupId;
+  var asanaResult=state.currentAsanaResult;
+  showLookupStatus('🔍 Re-checking SKUVault…');
+  clearBgChecks();
+  try{
+    var result=await gasPost({action:'lookupPO',poNumber:po,skuVaultOnly:true});
+    if(state.activeLookupId!==seqId) return;
+    if(result.found&&result.sourceSystem==='skuvault'){
+      if(asanaResult){
+        if(!result.assignedCCs||!result.assignedCCs.length) result.assignedCCs=asanaResult.assignedCCs||[];
+        if(!result.clientName) result.clientName=asanaResult.clientName||'';
+        if(!result.projectName) result.projectName=asanaResult.projectName||'';
+        if(!result.asanaTaskGid) result.asanaTaskGid=asanaResult.asanaTaskGid||'';
+      }
+      state.svLookup=result;
+      state.svSelectedItem=null;state.svSelectedItems=[];state.showPriorApproved=false;
+      state.currentAsanaResult=null;
+      renderSvResult(result,false);
+      checkAddReady();
+      showToast('SKUVault confirmed ✓','green');
+    }else{
+      // Still not in SKUVault — restore Asana provisional view
+      if(asanaResult){
+        state.currentAsanaResult=asanaResult;
+        renderSvResult(asanaResult,true);
+      }else{
+        showLookupStatus('Not found in SKUVault');
+      }
+    }
+  }catch(err){
+    if(asanaResult){ state.currentAsanaResult=asanaResult; renderSvResult(asanaResult,true); }
+    else showLookupStatus('Lookup error — please retry');
+  }
 }
 
 function clearSvLookup(){
+  clearBgChecks();
+  state.activeLookupId=++state.lookupSeqId;
   state.svLookup=null;state.svSelectedItem=null;state.svSelectedItems=[];state.showPriorApproved=false;
   document.getElementById('sv-result').innerHTML='';
   if(!state.pendingPhoto) resetPhotoArea();
@@ -821,7 +940,7 @@ function resetPhotoArea(){
     '<div class="photo-tap-zone" onclick="triggerCamera()"><div class="photo-tap-icon">📷</div><div>Tap to take photo</div></div>';
 }
 
-function renderSvResult(result){
+function renderSvResult(result,provisional){
   var el=document.getElementById('sv-result');
   if(!result||!result.found){el.innerHTML='';if(!state.pendingPhoto) resetPhotoArea();return;}
   var items=result.items||[];
@@ -840,14 +959,17 @@ function renderSvResult(result){
     :'✓ Found in SKUVault — '+items.length+' item'+(items.length!==1?'s':'');
   var sourceBadgeClass=isAsana?'asana':'skuvault';
   var foundLabelClass=isAsana?'sv-found-label asana-label':'sv-found-label';
-  var html='<div class="sv-found-header">'+
+  var html='';
+  if(isAsana&&provisional){
+    html+='<div class="sv-provisional-notice">⏳ Asana match found — still checking SKUVault…</div>';
+  }
+  html+='<div class="sv-found-header">'+
     '<div class="'+foundLabelClass+'">'+sourceLabel+'</div>'+
     '<span class="sv-source-badge '+sourceBadgeClass+'">'+(isAsana?'Asana':'SKUVault')+'</span>'+
     '</div>';
   if(isAsana&&result.projectName){
     html+='<div style="font-size:12px;color:var(--text-light);margin-bottom:10px">📁 '+escHtml(result.projectName)+'</div>';
   }
-  // CC display from enrichment
   var ccLabel=buildCcLabel(result.assignedCCs||[]);
   if(FLAGS.CC_DISPLAY&&ccLabel){
     html+='<div class="sv-cc-row">👤 '+escHtml(ccLabel)+'</div>';
@@ -867,6 +989,9 @@ function renderSvResult(result){
     html+='<div id="sv-prior-items" style="display:none">';
     priorItems.forEach(function(entry){html+=buildSvItemHtml(entry.item,entry.idx,true,false,false);});
     html+='</div>';
+  }
+  if(isAsana){
+    html+='<button class="sv-recheck-btn" onclick="recheckSkuVault()">🔄 Recheck SKUVault</button>';
   }
   el.innerHTML=html;
   if(activeItems.length===1){
@@ -1286,6 +1411,9 @@ function buildFileName(po){
 }
 
 function resetAddForm(){
+  clearBgChecks();
+  state.lookupSeqId++;
+  state.activeLookupId=state.lookupSeqId;
   state.pendingPhoto=null;state.svLookup=null;state.svSelectedItem=null;
   state.svSelectedItems=[];state.showPriorApproved=false;
   clearTimeout(svLookupTimer);
