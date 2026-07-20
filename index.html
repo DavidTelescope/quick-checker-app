@@ -235,23 +235,39 @@ textarea.field-input{min-height:90px;resize:none;line-height:1.5}
   body>*:not(#print-label){display:none!important}
   @page{size:6in 4in;margin:0}
   #print-label{
-    display:block!important;
-    position:fixed;
-    top:0;left:0;
-    width:6in;height:4in;
-    padding:0.35in 0.4in;
-    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-    background:#FFFFFF;
-    text-align:center;
     display:flex!important;
     flex-direction:column;
-    justify-content:center;
     align-items:center;
+    justify-content:center;
+    text-align:center;
+    position:fixed;
+    top:0;left:0;
+    width:6in!important;height:4in!important;
+    min-width:6in!important;min-height:4in!important;
+    max-width:6in!important;max-height:4in!important;
+    padding:0.25in 0.3in!important;
+    margin:0!important;
+    gap:0.18in;
+    box-sizing:border-box;
+    overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#FFFFFF;
   }
-  #print-label,#print-label *{color:#000000!important;background:#FFFFFF!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .pl-client{font-size:13pt;font-weight:700;margin-bottom:8pt;text-transform:uppercase;letter-spacing:1pt}
-  .pl-project{font-size:20pt;font-weight:800;margin-bottom:14pt;line-height:1.2}
-  .pl-product{font-size:13pt;font-weight:600;line-height:1.4}
+  #print-label,#print-label *{
+    color:#000000!important;background:#FFFFFF!important;
+    border-color:#000000!important;box-shadow:none!important;
+    text-shadow:none!important;opacity:1!important;filter:none!important;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact
+  }
+  .pl-client{width:100%;font-size:28pt;font-weight:800;line-height:1.08;text-align:center}
+  .pl-client.pl-md{font-size:22pt}
+  .pl-client.pl-lg{font-size:18pt}
+  .pl-project{width:100%;font-size:46pt;font-weight:900;line-height:1.05;text-align:center}
+  .pl-project.pl-md{font-size:36pt}
+  .pl-project.pl-lg{font-size:25pt}
+  .pl-product{width:100%;font-size:34pt;font-weight:800;line-height:1.08;text-align:center}
+  .pl-product.pl-md{font-size:28pt}
+  .pl-product.pl-lg{font-size:22pt}
 }
 </style>
 </head>
@@ -1160,7 +1176,19 @@ function updateLabelPreview(){
   document.getElementById('pl-product').textContent=document.getElementById('print-product-edit').value;
 }
 
-function executePrint(){ updateLabelPreview(); closePrintSheet(); window.print(); }
+function applyPrintLabelSizing(){
+  var client=document.getElementById('print-client-edit').value;
+  var project=document.getElementById('print-project-edit').value;
+  var product=document.getElementById('print-product-edit').value;
+  var elC=document.getElementById('pl-client');
+  var elPj=document.getElementById('pl-project');
+  var elPd=document.getElementById('pl-product');
+  elC.className='pl-client'+(client.length>50?' pl-lg':client.length>30?' pl-md':'');
+  elPj.className='pl-project'+(project.length>35?' pl-lg':project.length>22?' pl-md':'');
+  elPd.className='pl-product'+(product.length>50?' pl-lg':product.length>30?' pl-md':'');
+}
+
+function executePrint(){ updateLabelPreview(); applyPrintLabelSizing(); closePrintSheet(); window.print(); }
 
 // ── HOME ───────────────────────────────────
 function setHomeFilter(f){
